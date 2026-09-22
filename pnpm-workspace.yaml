@@ -1,6 +1,15 @@
 packages:
   - apps/*
 
+allowBuilds:
+  '@parcel/watcher': set this to true or false
+  '@prisma/engines': set this to true or false
+  '@scarf/scarf': set this to true or false
+  esbuild: set this to true or false
+  prisma: set this to true or false
+  sharp: set this to true or false
+  unrs-resolver: set this to true or false
+
 catalogs:
   default:
     '@types/node': ^20.19.43
