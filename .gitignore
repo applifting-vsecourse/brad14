@@ -11,7 +11,9 @@ yarn-debug.log*
 yarn-error.log*
 
 # IDE
-.vscode
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 .idea
 *.iml
 

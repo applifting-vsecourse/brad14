@@ -1,7 +1,9 @@
 pnpm-lock.yaml
 node_modules
-apps
 .eslintcache
+
+# Generated application files
+apps/frontend/src/routeTree.gen.ts
 
 # Prisma client (generated)
 apps/backend/src/generated/

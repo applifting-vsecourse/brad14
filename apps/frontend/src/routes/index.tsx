@@ -45,7 +45,7 @@ function LandingPage() {
           <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-5xl">
             Say it in a few words.
           </h1>
-          <h2 className="text-3xl my-2">David Brablc - brad14</h2>
+          <h2 className="my-2 text-3xl">David Brablc - brad14</h2>
           <p className="mx-auto mt-4 max-w-md text-lg text-pretty text-muted-foreground">
             Quacker is a tiny social network for short messages. Post a quack, read what everyone
             else is up to.

@@ -8,9 +8,7 @@ type RootErrorBoundaryProps = {
 
 export function RootErrorBoundary({ error }: RootErrorBoundaryProps) {
   const description =
-    error instanceof Error && error.message
-      ? error.message
-      : "An unexpected error occurred."
+    error instanceof Error && error.message ? error.message : "An unexpected error occurred."
 
   return (
     <ErrorLayout
