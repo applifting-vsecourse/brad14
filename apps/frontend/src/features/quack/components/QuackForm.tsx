@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2 } from "lucide-react"
+import { Angry, Frown, Laugh, Loader2, Smile } from "lucide-react"
 import { useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 
@@ -22,12 +22,20 @@ import { useAddQuack } from "@/features/quack/hooks/useAddQuack"
 // the request is made — the server still validates independently.
 const MAX_LENGTH = 280
 
+const MOOD_OPTIONS = [
+  { value: "happy", label: "Happy", Icon: Smile },
+  { value: "sad", label: "Sad", Icon: Frown },
+  { value: "angry", label: "Angry", Icon: Angry },
+  { value: "silly", label: "Silly", Icon: Laugh },
+] as const
+
 const schema = z.object({
   text: z
     .string()
     .trim()
     .min(1, "Write something first")
     .max(MAX_LENGTH, `Keep it under ${MAX_LENGTH} characters`),
+  mood: z.enum(["none", "happy", "sad", "angry", "silly"]),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -38,14 +46,20 @@ export function QuackForm({ className }: QuackFormProps) {
   const addQuack = useAddQuack()
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { text: "" },
+    defaultValues: { text: "", mood: "none" },
   })
 
   const text = useWatch({ control: form.control, name: "text" })
   const length = text?.length ?? 0
 
   const handleSubmit = (values: FormValues) => {
-    addQuack.mutate({ text: values.text }, { onSuccess: () => form.reset() })
+    addQuack.mutate(
+      {
+        text: values.text,
+        ...(values.mood !== "none" ? { mood: values.mood } : {}),
+      },
+      { onSuccess: () => form.reset() },
+    )
   }
 
   return (
@@ -61,24 +75,69 @@ export function QuackForm({ className }: QuackFormProps) {
           </Alert>
         ) : null}
 
-        <FormField
-          control={form.control}
-          name="text"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>New quack</FormLabel>
-              <FormControl>
-                <Textarea
-                  rows={3}
-                  placeholder="Quack something..."
-                  disabled={addQuack.isPending}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="space-y-3">
+          <FormField
+            control={form.control}
+            name="text"
+            render={({ field }) => (
+              <FormItem className="flex-1">
+                <FormLabel>New quack</FormLabel>
+                <FormControl>
+                  <Textarea
+                    rows={3}
+                    placeholder="Quack something..."
+                    disabled={addQuack.isPending}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="mood"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel
+                  id="quack-mood-label"
+                  htmlFor={undefined}
+                >
+                  Mood (optional)
+                </FormLabel>
+                <div
+                  role="group"
+                  aria-labelledby="quack-mood-label"
+                  className="flex gap-2"
+                >
+                  {MOOD_OPTIONS.map(({ value, label, Icon }) => {
+                    const isSelected = field.value === value
+
+                    return (
+                      <Button
+                        key={value}
+                        type="button"
+                        size="icon"
+                        variant={isSelected ? "secondary" : "outline"}
+                        aria-label={label}
+                        aria-pressed={isSelected}
+                        disabled={addQuack.isPending}
+                        onClick={() => field.onChange(isSelected ? "none" : value)}
+                      >
+                        <Icon
+                          aria-hidden="true"
+                          className="size-5"
+                        />
+                      </Button>
+                    )
+                  })}
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <div className="flex items-center justify-end gap-3">
           <span
