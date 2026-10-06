@@ -11,5 +11,5 @@ export default {
     'pnpm --filter backend exec prettier --write',
     'pnpm --filter backend exec eslint --fix',
   ],
-  '*.{json,md,yaml,yml}': ['prettier --write'],
+  '*.{json,md,yaml,yml}': ['pnpm --filter frontend exec prettier --write'],
 };
