@@ -26,6 +26,14 @@ Need a control that isn't in `src/components/ui/`? Add it with `pnpm dlx shadcn@
 
 The CLI puts `shadow-xs`/`shadow-sm` on inputs, textareas and cards. [`DESIGN.md`](DESIGN.md) keeps shadows for things that genuinely float — dialogs, dropdowns, toasts. Strip them.
 
+### Icons
+
+Use Lucide (`lucide-react`) for all icons. Do not introduce icons from another icon pack.
+
+### Recording project context
+
+When David asks to add repo-specific context, record it in this file. Record architectural decisions as ADRs; create a skill only for a multiprocess task.
+
 ### The app is already running
 
 Assume the dev servers are up. If something is listening on the app's ports, that is this application: use it. Don't start a second instance, don't restart it, don't run `pnpm dev`.
