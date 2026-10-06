@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2 } from "lucide-react"
+import { Angry, Frown, Laugh, Loader2, Smile } from "lucide-react"
 import { useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 
@@ -13,13 +13,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
@@ -28,6 +21,13 @@ import { useAddQuack } from "@/features/quack/hooks/useAddQuack"
 // Mirrors the server-side DTO (MaxLength(280)) so the user is told before
 // the request is made — the server still validates independently.
 const MAX_LENGTH = 280
+
+const MOOD_OPTIONS = [
+  { value: "happy", label: "Happy", Icon: Smile },
+  { value: "sad", label: "Sad", Icon: Frown },
+  { value: "angry", label: "Angry", Icon: Angry },
+  { value: "silly", label: "Silly", Icon: Laugh },
+] as const
 
 const schema = z.object({
   text: z
@@ -99,26 +99,40 @@ export function QuackForm({ className }: QuackFormProps) {
             control={form.control}
             name="mood"
             render={({ field }) => (
-              <FormItem className="sm:w-1/3">
-                <FormLabel>Mood (optional)</FormLabel>
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  disabled={addQuack.isPending}
+              <FormItem>
+                <FormLabel
+                  id="quack-mood-label"
+                  htmlFor={undefined}
                 >
-                  <FormControl>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Choose a mood" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">No mood</SelectItem>
-                    <SelectItem value="happy">Happy</SelectItem>
-                    <SelectItem value="sad">Sad</SelectItem>
-                    <SelectItem value="angry">Angry</SelectItem>
-                    <SelectItem value="silly">Silly</SelectItem>
-                  </SelectContent>
-                </Select>
+                  Mood (optional)
+                </FormLabel>
+                <div
+                  role="group"
+                  aria-labelledby="quack-mood-label"
+                  className="flex gap-2"
+                >
+                  {MOOD_OPTIONS.map(({ value, label, Icon }) => {
+                    const isSelected = field.value === value
+
+                    return (
+                      <Button
+                        key={value}
+                        type="button"
+                        size="icon"
+                        variant={isSelected ? "secondary" : "outline"}
+                        aria-label={label}
+                        aria-pressed={isSelected}
+                        disabled={addQuack.isPending}
+                        onClick={() => field.onChange(isSelected ? "none" : value)}
+                      >
+                        <Icon
+                          aria-hidden="true"
+                          className="size-5"
+                        />
+                      </Button>
+                    )
+                  })}
+                </div>
                 <FormMessage />
               </FormItem>
             )}
