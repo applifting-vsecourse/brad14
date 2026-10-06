@@ -22,9 +22,19 @@ enum UserRole {
   @@map("user_role")
 }
 
+enum QuackMood {
+  happy
+  sad
+  angry
+  silly
+
+  @@map("quack_mood")
+}
+
 model Quack {
   id        String   @id @default(cuid())
   text      String   @db.Text
+  mood      QuackMood?
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
   createdAt DateTime @default(now())

@@ -9,6 +9,7 @@ import { QuacksService } from './quacks.service';
 const aQuack = (overrides: Partial<Quack> = {}): Quack => ({
   id: 'q1',
   text: 'quack quack',
+  mood: null,
   userId: 'u1',
   createdAt: new Date('2026-01-01T12:00:00Z'),
   updatedAt: new Date('2026-01-01T12:00:00Z'),

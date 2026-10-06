@@ -4,9 +4,13 @@ export type QuackAuthor = {
   username: string;
 };
 
+export const QUACK_MOODS = ['happy', 'sad', 'angry', 'silly'] as const;
+export type QuackMood = (typeof QUACK_MOODS)[number];
+
 export type Quack = {
   id: string;
   text: string;
+  mood: QuackMood | null;
   userId: string;
   createdAt: Date;
   updatedAt: Date;

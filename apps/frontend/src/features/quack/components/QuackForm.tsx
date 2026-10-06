@@ -13,6 +13,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
@@ -28,6 +35,7 @@ const schema = z.object({
     .trim()
     .min(1, "Write something first")
     .max(MAX_LENGTH, `Keep it under ${MAX_LENGTH} characters`),
+  mood: z.enum(["none", "happy", "sad", "angry", "silly"]),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -38,14 +46,20 @@ export function QuackForm({ className }: QuackFormProps) {
   const addQuack = useAddQuack()
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { text: "" },
+    defaultValues: { text: "", mood: "none" },
   })
 
   const text = useWatch({ control: form.control, name: "text" })
   const length = text?.length ?? 0
 
   const handleSubmit = (values: FormValues) => {
-    addQuack.mutate({ text: values.text }, { onSuccess: () => form.reset() })
+    addQuack.mutate(
+      {
+        text: values.text,
+        ...(values.mood !== "none" ? { mood: values.mood } : {}),
+      },
+      { onSuccess: () => form.reset() },
+    )
   }
 
   return (
@@ -61,24 +75,55 @@ export function QuackForm({ className }: QuackFormProps) {
           </Alert>
         ) : null}
 
-        <FormField
-          control={form.control}
-          name="text"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>New quack</FormLabel>
-              <FormControl>
-                <Textarea
-                  rows={3}
-                  placeholder="Quack something..."
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+          <FormField
+            control={form.control}
+            name="text"
+            render={({ field }) => (
+              <FormItem className="flex-1">
+                <FormLabel>New quack</FormLabel>
+                <FormControl>
+                  <Textarea
+                    rows={3}
+                    placeholder="Quack something..."
+                    disabled={addQuack.isPending}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="mood"
+            render={({ field }) => (
+              <FormItem className="sm:w-1/3">
+                <FormLabel>Mood (optional)</FormLabel>
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
                   disabled={addQuack.isPending}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                >
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Choose a mood" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="none">No mood</SelectItem>
+                    <SelectItem value="happy">Happy</SelectItem>
+                    <SelectItem value="sad">Sad</SelectItem>
+                    <SelectItem value="angry">Angry</SelectItem>
+                    <SelectItem value="silly">Silly</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <div className="flex items-center justify-end gap-3">
           <span
