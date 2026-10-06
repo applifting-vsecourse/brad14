@@ -75,7 +75,7 @@ export function QuackForm({ className }: QuackFormProps) {
           </Alert>
         ) : null}
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+        <div className="space-y-3">
           <FormField
             control={form.control}
             name="text"
