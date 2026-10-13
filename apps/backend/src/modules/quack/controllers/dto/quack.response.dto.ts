@@ -1,3 +1,4 @@
+import { PollMetadata } from '@/modules/quack/domain/poll';
 import {
   QUACK_MOODS,
   type Quack,
@@ -35,6 +36,9 @@ export class QuackResponseDto {
   @ApiProperty({ type: QuackUserDto })
   user!: QuackUserDto;
 
+  @ApiProperty({ nullable: true, type: Object })
+  poll!: PollMetadata | null;
+
   static fromDomain(quack: Quack): QuackResponseDto {
     if (!quack.user) {
       throw new Error(
@@ -45,6 +49,7 @@ export class QuackResponseDto {
       id: quack.id,
       text: quack.text,
       mood: quack.mood,
+      poll: quack.poll ?? null,
       userId: quack.userId,
       createdAt: quack.createdAt,
       user: {

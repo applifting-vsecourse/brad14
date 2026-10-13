@@ -1,5 +1,6 @@
 import { PrismaService } from '@/core/prisma/prisma.service';
 import { User } from '@/generated/prisma/client';
+import { PollRepository } from '@/modules/quack/repositories/poll.repository';
 import { BetterAuth } from '@/shared/auth/providers/better-auth.provider';
 import { Config } from '@/shared/config/config.service';
 import { createQuack } from './create-quack';
@@ -171,4 +172,52 @@ Please stop tagging me.`,
       createdAt: new Date(now - minutesAgo * MINUTE_IN_MS),
     });
   }
+  const lunch = await prisma.quack.create({
+    data: {
+      text: 'Where should we go for lunch?',
+      userId: caffeinatedDuck.id,
+      poll: {
+        create: {
+          options: {
+            create: ['Pizza', 'Soup', 'Sandwiches'].map((label, position) => ({
+              label,
+              normalizedLabel: label.toLowerCase(),
+              position,
+            })),
+          },
+        },
+      },
+    },
+    include: {
+      poll: { include: { options: { orderBy: { position: 'asc' } } } },
+    },
+  });
+  const pollRepository = new PollRepository(prisma);
+  await pollRepository.vote(
+    lunch.poll!.id,
+    breadCritic.id,
+    lunch.poll!.options[0].id,
+  );
+  await pollRepository.vote(
+    lunch.poll!.id,
+    deepDuckThoughts.id,
+    lunch.poll!.options[1].id,
+  );
+  await prisma.quack.create({
+    data: {
+      text: 'Which day should we meet?',
+      userId: pondAdmin.id,
+      poll: {
+        create: {
+          options: {
+            create: ['Monday', 'Tuesday'].map((label, position) => ({
+              label,
+              normalizedLabel: label.toLowerCase(),
+              position,
+            })),
+          },
+        },
+      },
+    },
+  });
 };
