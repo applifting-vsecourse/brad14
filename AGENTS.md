@@ -30,6 +30,10 @@ The CLI puts `shadow-xs`/`shadow-sm` on inputs, textareas and cards. [`DESIGN.md
 
 Use Lucide (`lucide-react`) for all icons. Do not introduce icons from another icon pack.
 
+### Pending indicators
+
+Pending indicators must avoid flicker. Show a loader only when an operation takes longer than 200 ms. Place it inside the affected control, replacing its existing icon where possible, while keeping optimistic updates immediate.
+
 ### Recording project context
 
 When David asks to add repo-specific context, record it in this file. Record architectural decisions as ADRs; create a skill only for a multiprocess task.
