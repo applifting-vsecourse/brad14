@@ -57,6 +57,7 @@ export class QuacksController {
     const quack = await this.quacksService.createQuack(user, {
       text: body.text,
       mood: body.mood,
+      poll: body.poll,
     });
     return QuackResponseDto.fromDomain(quack);
   }

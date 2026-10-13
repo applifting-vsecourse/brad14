@@ -1,3 +1,5 @@
+import { PollMetadata } from './poll';
+
 export type QuackAuthor = {
   id: string;
   name: string;
@@ -15,4 +17,5 @@ export type Quack = {
   createdAt: Date;
   updatedAt: Date;
   user?: QuackAuthor;
+  poll?: PollMetadata | null;
 };

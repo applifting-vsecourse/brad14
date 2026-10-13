@@ -39,6 +39,7 @@ model Quack {
   userId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+  poll      Poll?
 
   @@index([userId])
   @@map("quack")
@@ -103,6 +104,7 @@ model User {
   sessions        Session[]
   accounts        Account[]
   quacks          Quack[]
+  pollVotes       PollVote[]
   role            UserRole  @default(user)
 
   username        String? @db.VarChar(50)
@@ -113,4 +115,40 @@ model User {
   @@unique([email])
   @@unique([username])
   @@map("user")
+}
+
+model Poll {
+  id       String @id @default(cuid())
+  quackId  String @unique
+  quack    Quack @relation(fields: [quackId], references: [id], onDelete: Cascade)
+  revision BigInt @default(0)
+  options  PollOption[]
+  @@map("poll")
+}
+
+model PollOption {
+  id              String @id @default(cuid())
+  pollId          String
+  poll            Poll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  position        Int
+  label           String @db.VarChar(100)
+  normalizedLabel String @db.VarChar(100)
+  votes           PollVote[]
+  @@unique([pollId, id])
+  @@unique([pollId, position])
+  @@unique([pollId, normalizedLabel])
+  @@map("poll_option")
+}
+
+model PollVote {
+  pollId    String
+  userId    String
+  optionId  String
+  updatedAt DateTime @default(now()) @updatedAt
+  option    PollOption @relation(fields: [pollId, optionId], references: [pollId, id], onDelete: Cascade)
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([pollId, userId])
+  @@index([pollId, optionId])
+  @@index([userId])
+  @@map("poll_vote")
 }

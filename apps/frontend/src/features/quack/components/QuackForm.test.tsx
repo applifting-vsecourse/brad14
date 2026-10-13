@@ -47,3 +47,70 @@ describe("Default post mood", () => {
     expect(screen.getByRole("button", { name: "Sad" })).toHaveAttribute("aria-pressed", "true")
   })
 })
+
+describe("Poll composer", () => {
+  function setupComposer() {
+    render(
+      <QueryClientProvider
+        client={new QueryClient({ defaultOptions: { mutations: { retry: false } } })}
+      >
+        <QuackForm defaultMood="happy" />
+      </QueryClientProvider>,
+    )
+    return userEvent.setup()
+  }
+  it("attaches 2–6 answers, removes rows, and removes the poll entirely", async () => {
+    const user = setupComposer()
+    await user.click(screen.getByRole("button", { name: "Attach poll" }))
+    expect(screen.getByLabelText("Answer 1")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Remove answer 1" })).toBeDisabled()
+    for (let index = 0; index < 4; index++) {
+      await user.click(screen.getByRole("button", { name: "Add answer" }))
+      expect(screen.getByLabelText(`Answer ${index + 3}`)).toHaveFocus()
+    }
+    expect(screen.getByLabelText("Answer 6")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Add answer" })).toBeDisabled()
+    await user.click(screen.getByRole("button", { name: "Remove answer 3" }))
+    expect(screen.queryByLabelText("Answer 6")).not.toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "Add answer" }))
+    expect(screen.getByLabelText("Answer 6")).toHaveFocus()
+    await user.click(screen.getByRole("button", { name: "Remove poll" }))
+    expect(screen.queryByLabelText("Answer 1")).not.toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Attach poll" })).toBeEnabled()
+  })
+  it("validates choices, keeps a failed draft, and submits trimmed choices with the existing mood", async () => {
+    vi.mocked(addQuack).mockRejectedValue(new Error("Could not publish"))
+    const user = setupComposer()
+    await user.type(screen.getByLabelText("New quack"), "Lunch?")
+    await user.click(screen.getByRole("button", { name: "Attach poll" }))
+    await user.type(screen.getByLabelText("Answer 1"), " Pizza ")
+    await user.type(screen.getByLabelText("Answer 2"), " pizza ")
+    await user.click(screen.getByRole("button", { name: "Quack" }))
+    expect(await screen.findByText("Answers must be different")).toBeInTheDocument()
+    expect(addQuack).not.toHaveBeenCalled()
+    await user.clear(screen.getByLabelText("Answer 2"))
+    await user.type(screen.getByLabelText("Answer 2"), " Soup ")
+    await user.click(screen.getByRole("button", { name: "Quack" }))
+    expect(await screen.findByText("Could not publish")).toBeInTheDocument()
+    expect(screen.getByLabelText("New quack")).toHaveValue("Lunch?")
+    expect(screen.getByLabelText("Answer 1")).toHaveValue(" Pizza ")
+    expect(screen.getByRole("button", { name: "Happy" })).toHaveAttribute("aria-pressed", "true")
+    expect(vi.mocked(addQuack).mock.calls[0]?.[0]).toEqual({
+      text: "Lunch?",
+      mood: "happy",
+      poll: { options: ["Pizza", "Soup"] },
+    })
+    vi.mocked(addQuack).mockResolvedValue({
+      id: "q1",
+      text: "Lunch?",
+      mood: "happy",
+      userId: "u1",
+      user: { id: "u1", username: "duck", name: "Duck" },
+      createdAt: new Date(),
+      poll: { id: "p1", options: [] },
+    })
+    await user.click(screen.getByRole("button", { name: "Quack" }))
+    await waitFor(() => expect(screen.getByLabelText("New quack")).toHaveValue(""))
+    expect(screen.queryByLabelText("Answer 1")).not.toBeInTheDocument()
+  })
+})

@@ -8,6 +8,20 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: quacker
+          POSTGRES_PASSWORD: quacker
+          POSTGRES_DB: quacker
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U quacker -d quacker"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v5
 
@@ -41,6 +55,12 @@ jobs:
 
       - name: Test backend
         run: pnpm backend test
+
+      - name: Apply database migrations
+        run: pnpm backend migrate
+
+      - name: Test poll concurrency and live notifications
+        run: pnpm backend test:polls:integration
 
       - name: Test frontend
         run: pnpm frontend test:ci

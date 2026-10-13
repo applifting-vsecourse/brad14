@@ -6,6 +6,7 @@ import { Seo } from "@/components/Seo"
 import { profileQueryOptions } from "@/features/auth/api/profile"
 import { useSession } from "@/features/auth/hooks/useSession"
 import { quacksQueryOptions } from "@/features/quack/api/quacksQueryOptions"
+import { PollProvider } from "@/features/quack/components/PollProvider"
 import { QuackForm } from "@/features/quack/components/QuackForm"
 import { QuackList } from "@/features/quack/components/QuackList"
 
@@ -30,14 +31,19 @@ function QuacksPage() {
           isProfilePending={profile.isPending}
         />
 
-        <QuackList
-          quacks={quacksQuery.data ?? []}
-          isLoading={quacksQuery.isLoading}
-          error={quacksQuery.error ?? undefined}
-          // Only the error state offers a retry — posting invalidates the list,
-          // and refocusing the tab refetches it.
-          onReload={() => void quacksQuery.refetch()}
-        />
+        <PollProvider
+          accountId={user?.id ?? ""}
+          pollIds={(quacksQuery.data ?? []).flatMap((quack) => (quack.poll ? [quack.poll.id] : []))}
+        >
+          <QuackList
+            quacks={quacksQuery.data ?? []}
+            isLoading={quacksQuery.isLoading}
+            error={quacksQuery.error ?? undefined}
+            // Only the error state offers a retry — posting invalidates the list,
+            // and refocusing the tab refetches it.
+            onReload={() => void quacksQuery.refetch()}
+          />
+        </PollProvider>
       </section>
     </>
   )
