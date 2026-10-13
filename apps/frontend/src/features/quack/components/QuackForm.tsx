@@ -1,8 +1,10 @@
+import { useEffect } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Angry, Frown, Laugh, Loader2, Smile } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 
+import { MoodPicker } from "@/components/MoodPicker"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import {
@@ -22,13 +24,6 @@ import { useAddQuack } from "@/features/quack/hooks/useAddQuack"
 // the request is made — the server still validates independently.
 const MAX_LENGTH = 280
 
-const MOOD_OPTIONS = [
-  { value: "happy", label: "Happy", Icon: Smile },
-  { value: "sad", label: "Sad", Icon: Frown },
-  { value: "angry", label: "Angry", Icon: Angry },
-  { value: "silly", label: "Silly", Icon: Laugh },
-] as const
-
 const schema = z.object({
   text: z
     .string()
@@ -40,14 +35,27 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
-type QuackFormProps = { className?: string }
+type QuackFormProps = {
+  className?: string
+  defaultMood?: FormValues["mood"]
+  isProfilePending?: boolean
+}
 
-export function QuackForm({ className }: QuackFormProps) {
+export function QuackForm({
+  className,
+  defaultMood = "none",
+  isProfilePending = false,
+}: QuackFormProps) {
   const addQuack = useAddQuack()
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { text: "", mood: "none" },
+    defaultValues: { text: "", mood: defaultMood },
   })
+
+  const { resetField, getFieldState } = form
+  useEffect(() => {
+    if (!getFieldState("mood").isDirty) resetField("mood", { defaultValue: defaultMood })
+  }, [defaultMood, resetField, getFieldState])
 
   const text = useWatch({ control: form.control, name: "text" })
   const length = text?.length ?? 0
@@ -58,7 +66,7 @@ export function QuackForm({ className }: QuackFormProps) {
         text: values.text,
         ...(values.mood !== "none" ? { mood: values.mood } : {}),
       },
-      { onSuccess: () => form.reset() },
+      { onSuccess: () => form.reset({ text: "", mood: defaultMood }) },
     )
   }
 
@@ -86,7 +94,7 @@ export function QuackForm({ className }: QuackFormProps) {
                   <Textarea
                     rows={3}
                     placeholder="Quack something..."
-                    disabled={addQuack.isPending}
+                    disabled={addQuack.isPending || isProfilePending}
                     {...field}
                   />
                 </FormControl>
@@ -106,33 +114,12 @@ export function QuackForm({ className }: QuackFormProps) {
                 >
                   Mood (optional)
                 </FormLabel>
-                <div
-                  role="group"
-                  aria-labelledby="quack-mood-label"
-                  className="flex gap-2"
-                >
-                  {MOOD_OPTIONS.map(({ value, label, Icon }) => {
-                    const isSelected = field.value === value
-
-                    return (
-                      <Button
-                        key={value}
-                        type="button"
-                        size="icon"
-                        variant={isSelected ? "secondary" : "outline"}
-                        aria-label={label}
-                        aria-pressed={isSelected}
-                        disabled={addQuack.isPending}
-                        onClick={() => field.onChange(isSelected ? "none" : value)}
-                      >
-                        <Icon
-                          aria-hidden="true"
-                          className="size-5"
-                        />
-                      </Button>
-                    )
-                  })}
-                </div>
+                <MoodPicker
+                  value={field.value}
+                  labelledBy="quack-mood-label"
+                  disabled={addQuack.isPending || isProfilePending}
+                  onChange={field.onChange}
+                />
                 <FormMessage />
               </FormItem>
             )}
@@ -151,7 +138,7 @@ export function QuackForm({ className }: QuackFormProps) {
           <Button
             type="submit"
             size="sm"
-            disabled={addQuack.isPending}
+            disabled={addQuack.isPending || isProfilePending}
           >
             {addQuack.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
             Quack
