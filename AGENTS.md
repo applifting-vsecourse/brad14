@@ -30,6 +30,10 @@ The CLI puts `shadow-xs`/`shadow-sm` on inputs, textareas and cards. [`DESIGN.md
 
 Use Lucide (`lucide-react`) for all icons. Do not introduce icons from another icon pack.
 
+### Compact actions
+
+Prefer icon-only buttons for familiar secondary actions, such as deleting a post. Give each an accessible label. Place related action buttons on the same row as the content or header they act on, aligned to the right where appropriate, rather than adding a separate row. Keep text labels when the action would be unclear from an icon alone.
+
 ### Pending indicators
 
 Pending indicators must avoid flicker. Show a loader only when an operation takes longer than 200 ms. Place it inside the affected control, replacing its existing icon where possible, while keeping optimistic updates immediate.
