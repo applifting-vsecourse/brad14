@@ -10,6 +10,7 @@
     "type-check": "tsc --noEmit",
     "test": "vitest",
     "test:ci": "vitest run",
+    "e2e": "playwright test",
     "format:check": "prettier --check './src/**/*.{ts,tsx,css,js,cjs,mjs,json}'",
     "format:write": "prettier --write './src/**/*.{ts,tsx,css,js,cjs,mjs,json}'",
     "lint:check": "eslint './src/**/*.{ts,tsx,js,cjs,mjs}'",
