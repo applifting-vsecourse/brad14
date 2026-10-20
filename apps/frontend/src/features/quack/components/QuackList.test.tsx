@@ -41,3 +41,18 @@ describe("QuackList", () => {
     expect(onReload).toHaveBeenCalledOnce()
   })
 })
+
+it("filters Mine and offers to compose when empty", async () => {
+  render(
+    <QuackList
+      currentUserId="u2"
+      quacks={[quack()]}
+    />,
+  )
+  await userEvent.click(screen.getByRole("tab", { name: "Mine" }))
+  expect(screen.queryByText("quack quack")).not.toBeInTheDocument()
+  expect(screen.getByText("You haven’t posted any quacks yet.")).toBeInTheDocument()
+  expect(screen.getByRole("button", { name: "Write your first quack" })).toBeInTheDocument()
+  await userEvent.click(screen.getByRole("tab", { name: "All" }))
+  expect(screen.getByText("quack quack")).toBeInTheDocument()
+})

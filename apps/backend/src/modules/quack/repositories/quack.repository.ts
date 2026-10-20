@@ -48,6 +48,17 @@ const mapPrismaQuackToDomain = (
 export class QuackRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  async exists(id: string): Promise<boolean> {
+    return (await this.prisma.quack.count({ where: { id } })) > 0;
+  }
+
+  async deleteOwnedQuack(id: string, userId: string): Promise<boolean> {
+    const result = await this.prisma.quack.deleteMany({
+      where: { id, userId },
+    });
+    return result.count > 0;
+  }
+
   async getQuacks(): Promise<Quack[]> {
     const quacks = await this.prisma.quack.findMany({
       include: {

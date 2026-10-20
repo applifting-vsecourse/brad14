@@ -25,17 +25,20 @@ function QuacksPage() {
       <section className="mx-auto w-full max-w-2xl px-4 py-8">
         <h1 className="mb-4 text-2xl font-semibold tracking-tight">Quacks</h1>
 
-        <QuackForm
-          className="mb-4"
-          defaultMood={profile.data?.defaultMood ?? "none"}
-          isProfilePending={profile.isPending}
-        />
+        <div id="quack-composer">
+          <QuackForm
+            className="mb-4"
+            defaultMood={profile.data?.defaultMood ?? "none"}
+            isProfilePending={profile.isPending}
+          />
+        </div>
 
         <PollProvider
           accountId={user?.id ?? ""}
           pollIds={(quacksQuery.data ?? []).flatMap((quack) => (quack.poll ? [quack.poll.id] : []))}
         >
           <QuackList
+            currentUserId={user?.id}
             quacks={quacksQuery.data ?? []}
             isLoading={quacksQuery.isLoading}
             error={quacksQuery.error ?? undefined}

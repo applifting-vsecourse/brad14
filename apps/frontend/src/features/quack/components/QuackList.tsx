@@ -4,30 +4,46 @@ import { Loader2, RefreshCw } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import type { Quack } from "@/features/quack/api/quackSchemas"
 import { QuackItem } from "@/features/quack/components/QuackItem"
 
 type QuackListProps = {
+  currentUserId?: string
   quacks: Quack[]
   isLoading?: boolean
   error?: Error
   onReload?: () => void
 }
 
-export function QuackList({ quacks, isLoading, error, onReload }: QuackListProps) {
+export function QuackList({ quacks, isLoading, error, onReload, currentUserId }: QuackListProps) {
+  const [scope, setScope] = useState("all")
+  const scopedQuacks =
+    scope === "mine" ? quacks.filter((quack) => quack.userId === currentUserId) : quacks
   const [searchTerm, setSearchTerm] = useState("")
   const normalizedSearchTerm = searchTerm.trim().toLowerCase()
   const visibleQuacks = normalizedSearchTerm
-    ? quacks.filter((quack) =>
+    ? scopedQuacks.filter((quack) =>
         [quack.text, quack.user.name, quack.user.username].some((value) =>
           value.toLowerCase().includes(normalizedSearchTerm),
         ),
       )
-    : quacks
+    : scopedQuacks
 
   return (
     <div className="flex flex-col">
+      <Tabs
+        value={scope}
+        onValueChange={setScope}
+        className="mb-4"
+        aria-label="Quack feed"
+      >
+        <TabsList>
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="mine">Mine</TabsTrigger>
+        </TabsList>
+      </Tabs>
       <div className="mb-4 flex flex-col gap-2">
         <label
           htmlFor="quack-search"
@@ -74,7 +90,21 @@ export function QuackList({ quacks, isLoading, error, onReload }: QuackListProps
 
       {!isLoading && !error && visibleQuacks.length === 0 ? (
         <p className="py-8 text-center text-sm text-muted-foreground">
-          {normalizedSearchTerm ? "No posts match." : "No quacks yet. Post the first one."}
+          {normalizedSearchTerm
+            ? "No posts match."
+            : scope === "mine"
+              ? "You haven’t posted any quacks yet."
+              : "No quacks yet. Post the first one."}
+          {scope === "mine" && !normalizedSearchTerm ? (
+            <Button
+              variant="link"
+              onClick={() =>
+                document.querySelector<HTMLTextAreaElement>("#quack-composer textarea")?.focus()
+              }
+            >
+              Write your first quack
+            </Button>
+          ) : null}
         </p>
       ) : null}
 
@@ -82,6 +112,7 @@ export function QuackList({ quacks, isLoading, error, onReload }: QuackListProps
         <QuackItem
           key={quack.id}
           quack={quack}
+          currentUserId={currentUserId}
         />
       ))}
     </div>
