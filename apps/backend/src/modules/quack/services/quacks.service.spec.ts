@@ -3,6 +3,7 @@
 import { Quack } from '@/modules/quack/domain/quack';
 import { QuackRepository } from '@/modules/quack/repositories/quack.repository';
 import { Identity } from '@/shared/auth/domain/identity';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { mock } from 'jest-mock-extended';
 import { QuacksService } from './quacks.service';
 
@@ -46,4 +47,33 @@ describe('QuacksService', () => {
       userId: 'u1',
     });
   });
+});
+
+describe('quack deletion', () => {
+  it('deletes using the signed-in author identity', async () => {
+    const repository = mock<QuackRepository>();
+    repository.deleteOwnedQuack.mockResolvedValue(true);
+    await expect(
+      new QuacksService(repository).deleteQuack({ id: 'u1' } as Identity, 'q1'),
+    ).resolves.toBeUndefined();
+    expect(repository.deleteOwnedQuack).toHaveBeenCalledWith('q1', 'u1');
+  });
+  it('returns 404 for a missing quack', async () => {
+    const repository = mock<QuackRepository>();
+    repository.deleteOwnedQuack.mockResolvedValue(false);
+    repository.exists.mockResolvedValue(false);
+    await expect(
+      new QuacksService(repository).deleteQuack({ id: 'u2' } as Identity, 'q1'),
+    ).rejects.toThrow(NotFoundException);
+  });
+});
+
+it('returns 403 when the quack belongs to another author', async () => {
+  const repository = mock<QuackRepository>();
+  repository.deleteOwnedQuack.mockResolvedValue(false);
+  repository.exists.mockResolvedValue(true);
+  await expect(
+    new QuacksService(repository).deleteQuack({ id: 'u2' } as Identity, 'q1'),
+  ).rejects.toThrow(ForbiddenException);
+  expect(repository.deleteOwnedQuack).toHaveBeenCalledWith('q1', 'u2');
 });

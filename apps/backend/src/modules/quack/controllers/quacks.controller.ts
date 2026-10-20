@@ -5,9 +5,11 @@ import { AuthenticatedUserGuard } from '@/shared/auth/guards/authenticated-user.
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   UseGuards,
   UsePipes,
@@ -43,6 +45,20 @@ export class QuacksController {
   async list(): Promise<QuackResponseDto[]> {
     const quacks = await this.quacksService.getQuacks();
     return quacks.map(QuackResponseDto.fromDomain);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete your own quack' })
+  @ApiResponse({ status: 204, description: 'Deleted' })
+  @ApiResponse({ status: 403, description: 'Quack belongs to another author' })
+  @ApiResponse({
+    status: 404,
+    description: 'Quack not found',
+  })
+  @ApiResponse({ status: 401, description: 'Not signed in' })
+  async delete(@User() user: Identity, @Param('id') id: string): Promise<void> {
+    await this.quacksService.deleteQuack(user, id);
   }
 
   @Post()

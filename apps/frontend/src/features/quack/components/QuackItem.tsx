@@ -6,9 +6,11 @@ import { Poll } from "@/features/quack/components/Poll"
 import { UsersName } from "@/features/quack/components/UsersName"
 import { UsersUserName } from "@/features/quack/components/UsersUserName"
 
-type QuackItemProps = { quack: Quack }
+import { DeleteQuack } from "./DeleteQuack"
 
-export function QuackItem({ quack }: QuackItemProps) {
+type QuackItemProps = { quack: Quack; currentUserId?: string }
+
+export function QuackItem({ quack, currentUserId }: QuackItemProps) {
   const { name, username } = quack.user
 
   const initials = name
@@ -24,19 +26,22 @@ export function QuackItem({ quack }: QuackItemProps) {
         <AvatarFallback>{initials}</AvatarFallback>
       </Avatar>
 
-      <div className="flex flex-1 flex-col gap-1">
-        <div className="flex flex-wrap items-baseline gap-2">
-          <span>
-            <UsersName name={name} /> <UsersUserName username={username} />
-          </span>
-          <span className="text-xs text-muted-foreground">·</span>
-          <time className="text-xs text-muted-foreground">{formatDate(quack.createdAt)}</time>
-          {quack.mood ? (
-            <>
-              <span className="text-xs text-muted-foreground">·</span>
-              <span className="text-xs text-muted-foreground capitalize">{quack.mood}</span>
-            </>
-          ) : null}
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex flex-wrap items-baseline gap-2">
+            <span>
+              <UsersName name={name} /> <UsersUserName username={username} />
+            </span>
+            <span className="text-xs text-muted-foreground">·</span>
+            <time className="text-xs text-muted-foreground">{formatDate(quack.createdAt)}</time>
+            {quack.mood ? (
+              <>
+                <span className="text-xs text-muted-foreground">·</span>
+                <span className="text-xs text-muted-foreground capitalize">{quack.mood}</span>
+              </>
+            ) : null}
+          </div>
+          {currentUserId === quack.userId ? <DeleteQuack id={quack.id} /> : null}
         </div>
         <p className="text-sm break-words whitespace-pre-line">{quack.text}</p>
         {quack.poll ? <Poll id={quack.poll.id} /> : null}
