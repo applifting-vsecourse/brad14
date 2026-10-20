@@ -26,10 +26,12 @@
   },
   "exclude": ["node_modules", "build", "dist"],
   "include": [
+    "e2e/**/*.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
     "vite.config.ts",
     "vitest.config.ts",
+    "playwright.config.ts",
     "prettier.config.js",
     "eslint.config.js"
   ]
