@@ -49,9 +49,12 @@ export class QuacksController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete your own quack' })
+  @ApiOperation({ summary: 'Delete your own quack, or any quack as an admin' })
   @ApiResponse({ status: 204, description: 'Deleted' })
-  @ApiResponse({ status: 403, description: 'Quack belongs to another author' })
+  @ApiResponse({
+    status: 403,
+    description: 'Non-admin cannot delete another author’s quack',
+  })
   @ApiResponse({
     status: 404,
     description: 'Quack not found',

@@ -8,9 +8,9 @@ import { UsersUserName } from "@/features/quack/components/UsersUserName"
 
 import { DeleteQuack } from "./DeleteQuack"
 
-type QuackItemProps = { quack: Quack; currentUserId?: string }
+type QuackItemProps = { quack: Quack; currentUserId?: string; isAdmin?: boolean }
 
-export function QuackItem({ quack, currentUserId }: QuackItemProps) {
+export function QuackItem({ quack, currentUserId, isAdmin = false }: QuackItemProps) {
   const { name, username } = quack.user
 
   const initials = name
@@ -41,7 +41,7 @@ export function QuackItem({ quack, currentUserId }: QuackItemProps) {
               </>
             ) : null}
           </div>
-          {currentUserId === quack.userId ? <DeleteQuack id={quack.id} /> : null}
+          {currentUserId === quack.userId || isAdmin ? <DeleteQuack id={quack.id} /> : null}
         </div>
         <p className="text-sm break-words whitespace-pre-line">{quack.text}</p>
         {quack.poll ? <Poll id={quack.poll.id} /> : null}

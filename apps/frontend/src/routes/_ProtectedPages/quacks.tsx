@@ -38,6 +38,7 @@ function QuacksPage() {
           pollIds={(quacksQuery.data ?? []).flatMap((quack) => (quack.poll ? [quack.poll.id] : []))}
         >
           <QuackList
+            isAdmin={user?.role === "admin"}
             currentUserId={user?.id}
             quacks={quacksQuery.data ?? []}
             isLoading={quacksQuery.isLoading}

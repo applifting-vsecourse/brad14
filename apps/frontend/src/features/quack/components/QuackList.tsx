@@ -10,6 +10,7 @@ import type { Quack } from "@/features/quack/api/quackSchemas"
 import { QuackItem } from "@/features/quack/components/QuackItem"
 
 type QuackListProps = {
+  isAdmin?: boolean
   currentUserId?: string
   quacks: Quack[]
   isLoading?: boolean
@@ -17,7 +18,14 @@ type QuackListProps = {
   onReload?: () => void
 }
 
-export function QuackList({ quacks, isLoading, error, onReload, currentUserId }: QuackListProps) {
+export function QuackList({
+  quacks,
+  isLoading,
+  error,
+  onReload,
+  currentUserId,
+  isAdmin,
+}: QuackListProps) {
   const [scope, setScope] = useState("all")
   const scopedQuacks =
     scope === "mine" ? quacks.filter((quack) => quack.userId === currentUserId) : quacks
@@ -113,6 +121,7 @@ export function QuackList({ quacks, isLoading, error, onReload, currentUserId }:
           key={quack.id}
           quack={quack}
           currentUserId={currentUserId}
+          isAdmin={isAdmin}
         />
       ))}
     </div>
