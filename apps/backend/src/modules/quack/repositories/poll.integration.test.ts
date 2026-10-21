@@ -85,7 +85,15 @@ beforeAll(async () => {
             }): Promise<{ user: { id: string } } | null> =>
               Promise.resolve(
                 users.find((id) => headers.get('cookie') === `user=${id}`)
-                  ? { user: { id: headers.get('cookie')!.slice(5) } }
+                  ? {
+                      user: {
+                        id: headers.get('cookie')!.slice(5),
+                        role:
+                          headers.get('cookie') === `user=${users[10]}`
+                            ? 'admin'
+                            : 'user',
+                      },
+                    }
                   : null,
               ),
           },
@@ -357,3 +365,28 @@ it('ends SSE when its database listener fails and recovers automatically', async
     await reader.cancel().catch(() => undefined);
   }
 }, 10000);
+
+it('enforces deletion permissions over HTTP and cascades poll options and votes', async () => {
+  const quack = await quacks.createQuack({ id: users[0] } as Identity, {
+    text: 'Moderation fixture',
+    poll: { options: ['Yes', 'No'] },
+  });
+  const id = quack.poll!.id;
+  await polls.vote(id, users[1], quack.poll!.options[0].id);
+  const url = `${baseUrl}/api/quacks/${quack.id}`;
+  const remove = (user?: string): Promise<Response> =>
+    fetch(url, {
+      method: 'DELETE',
+      headers: user ? { Cookie: `user=${user}` } : {},
+    });
+  expect((await remove()).status).toBe(401);
+  expect((await remove(users[1])).status).toBe(403);
+  expect(await prisma.pollVote.count({ where: { pollId: id } })).toBe(1);
+  expect((await remove(users[10])).status).toBe(204);
+  expect(await prisma.quack.count({ where: { id: quack.id } })).toBe(0);
+  expect(await prisma.poll.count({ where: { id } })).toBe(0);
+  expect(await prisma.pollOption.count({ where: { pollId: id } })).toBe(0);
+  expect(await prisma.pollVote.count({ where: { pollId: id } })).toBe(0);
+  expect((await remove(users[10])).status).toBe(404);
+  expect((await remove(users[0])).status).toBe(404);
+});

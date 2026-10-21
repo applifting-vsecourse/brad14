@@ -48,3 +48,16 @@ describe("quack deletion", () => {
     await waitFor(() => expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument())
   })
 })
+
+it("shows Delete to admins on another author's quack", () => {
+  render(
+    <QueryClientProvider client={new QueryClient()}>
+      <QuackItem
+        quack={quack}
+        currentUserId="admin"
+        isAdmin
+      />
+    </QueryClientProvider>,
+  )
+  expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument()
+})

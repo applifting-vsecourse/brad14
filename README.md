@@ -94,3 +94,26 @@ apps/frontend/  React — src/routes (pages), src/features (feature folders), sr
 ```
 
 Working conventions for AI-assisted development: [`CLAUDE.md`](CLAUDE.md). UI rules every screen must follow: [`DESIGN.md`](DESIGN.md).
+
+### Testing admin deletion
+
+A fresh development seed creates `superadmin` with role `admin`, using
+`SUPERADMIN_EMAIL` and `SUPERADMIN_PASSWORD` from `apps/backend/.env`.
+The example defaults are `admin@example.com` / `adminpassword`.
+The seed skips databases that already contain users; it does not overwrite accounts.
+
+To assign an existing account manually, run this SQL against the development database
+(replace the email with the intended account):
+
+```sql
+UPDATE "user" SET role = 'admin' WHERE email = 'admin@example.com';
+```
+
+Use `role = 'user'` to remove admin access. Sign out and back in after changing roles.
+Roles cannot be assigned through public sign-up or profile inputs.
+Admins can delete any quack; ordinary users can delete only their own. The existing
+confirmation dialog applies to both, and database cascades remove the poll, options and votes.
+
+The moderation E2E test uses the example admin credentials by default. Override with
+`E2E_ADMIN_EMAIL` and `E2E_ADMIN_PASSWORD` if your development configuration differs.
+Run `pnpm backend test:polls:integration` for database cascade and HTTP permission coverage.

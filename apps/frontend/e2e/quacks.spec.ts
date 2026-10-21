@@ -28,7 +28,7 @@ test("author can post a quack and delete it", async ({ page }) => {
   await expect(quack).toHaveCount(0)
 })
 
-test("nobody can delete someone else's quack", async ({ page }) => {
+test("ordinary users cannot delete someone else's quack", async ({ page }) => {
   await signIn(page, "deepduckthoughts@example.com", "password2")
   await page.goto("/quacks")
 
@@ -40,4 +40,45 @@ test("nobody can delete someone else's quack", async ({ page }) => {
   const notMine = await findQuackNotBy(page, "DeepDuckThoughts")
   const response = await page.request.delete(`${API}/quacks/${notMine.id}`)
   expect(response.status()).toBe(403)
+})
+
+test("admin cancels then deletes another author's dedicated poll quack", async ({
+  page,
+  browser,
+}) => {
+  await signIn(page, "caffeinatedduck@example.com", "password1")
+  const response = await page.request.post(`${API}/quacks`, {
+    data: { text: `Moderation E2E ${Date.now()}`, poll: { options: ["Yes", "No"] } },
+  })
+  expect(response.status()).toBe(201)
+  const fixture = await response.json()
+  const context = await browser.newContext()
+  try {
+    const admin = await context.newPage()
+    await signIn(
+      admin,
+      process.env.E2E_ADMIN_EMAIL ?? "admin@example.com",
+      process.env.E2E_ADMIN_PASSWORD ?? "adminpassword",
+    )
+    await admin.goto("/quacks")
+    const quack = admin.getByRole("article").filter({ hasText: fixture.text })
+    await quack.getByRole("button", { name: "Delete", exact: true }).click()
+    await admin.getByRole("alertdialog").getByRole("button", { name: "Cancel" }).click()
+    await expect(quack).toBeVisible()
+    const vote = await page.request.put(`${API}/polls/${fixture.poll.id}/vote`, {
+      data: { optionId: fixture.poll.options[0].id },
+    })
+    expect(vote.status()).toBe(200)
+    await quack.getByRole("button", { name: "Delete", exact: true }).click()
+    await admin
+      .getByRole("alertdialog")
+      .getByRole("button", { name: "Delete", exact: true })
+      .click()
+    await expect(quack).toHaveCount(0)
+    expect((await admin.request.delete(`${API}/quacks/${fixture.id}`)).status()).toBe(404)
+    expect((await admin.request.get(`${API}/polls/${fixture.poll.id}`)).status()).toBe(404)
+  } finally {
+    await context.close()
+    await page.request.delete(`${API}/quacks/${fixture.id}`)
+  }
 })
