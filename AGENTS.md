@@ -44,6 +44,10 @@ When David asks to add repo-specific context, record it in this file. Record arc
 
 ### The app is already running
 
-Assume the dev servers are up. If something is listening on the app's ports, that is this application: use it. Don't start a second instance, don't restart it, don't run `pnpm dev`.
+Assume the dev servers are up. Use the existing servers after verifying they belong to this checkout. Don't start a second instance, don't restart it, don't run `pnpm dev`.
 
 Don't reach for the browser to check your own work. Tests and type-checks are the evidence; open the running app when asked to, not on your own initiative.
+
+### Verify the E2E target
+
+Before running E2E tests, verify that the frontend and backend listening on the configured ports belong to this checkout. A listening port alone is not proof. If another project owns either port, report the mismatch; do not stop or restart its servers. Treat the E2E result as blocked by the environment.
