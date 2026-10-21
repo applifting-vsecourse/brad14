@@ -52,13 +52,14 @@ export class QuackRepository {
     return (await this.prisma.quack.count({ where: { id } })) > 0;
   }
 
-  async deleteAuthorizedQuack(
-    id: string,
-    userId: string,
-    role: string,
-  ): Promise<boolean> {
+  async deleteQuack(id: string): Promise<boolean> {
+    const result = await this.prisma.quack.deleteMany({ where: { id } });
+    return result.count > 0;
+  }
+
+  async deleteOwnedQuack(id: string, userId: string): Promise<boolean> {
     const result = await this.prisma.quack.deleteMany({
-      where: { id, ...(role === 'admin' ? {} : { userId }) },
+      where: { id, userId },
     });
     return result.count > 0;
   }
