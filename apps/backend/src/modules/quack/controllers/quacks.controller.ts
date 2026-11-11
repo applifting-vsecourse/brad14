@@ -22,6 +22,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CreateQuackDto } from './dto/create-quack.dto';
+import { CreateReplyDto } from './dto/create-reply.dto';
+import { QuackFeedEntryResponseDto } from './dto/quack-feed-entry.response.dto';
 import { QuackResponseDto } from './dto/quack.response.dto';
 
 @ApiTags('quacks')
@@ -40,11 +42,34 @@ export class QuacksController {
 
   @Get()
   @ApiOperation({ summary: 'List all quacks' })
-  @ApiResponse({ status: 200, type: [QuackResponseDto] })
+  @ApiResponse({ status: 200, type: [QuackFeedEntryResponseDto] })
   @ApiResponse({ status: 401, description: 'Not signed in' })
-  async list(): Promise<QuackResponseDto[]> {
+  async list(): Promise<QuackFeedEntryResponseDto[]> {
     const quacks = await this.quacksService.getQuacks();
-    return quacks.map(QuackResponseDto.fromDomain);
+    return quacks.map(QuackFeedEntryResponseDto.fromDomain);
+  }
+
+  @Get(':id/replies')
+  @ApiOperation({ summary: 'List replies for a quack discussion' })
+  @ApiResponse({ status: 200, type: [QuackResponseDto] })
+  @ApiResponse({ status: 404, description: 'Discussion not found' })
+  async replies(@Param('id') id: string): Promise<QuackResponseDto[]> {
+    const replies = await this.quacksService.getReplies(id);
+    return replies.map(QuackResponseDto.fromDomain);
+  }
+
+  @Post(':id/replies')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Reply to a live top-level quack' })
+  @ApiResponse({ status: 201, type: QuackResponseDto })
+  @ApiResponse({ status: 409, description: 'The original quack was deleted' })
+  async createReply(
+    @User() user: Identity,
+    @Param('id') id: string,
+    @Body() body: CreateReplyDto,
+  ): Promise<QuackResponseDto> {
+    const reply = await this.quacksService.createReply(user, id, body.text);
+    return QuackResponseDto.fromDomain(reply);
   }
 
   @Delete(':id')

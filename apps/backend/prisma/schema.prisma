@@ -40,9 +40,23 @@ model Quack {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
   poll      Poll?
+  rootOfThread  QuackThread? @relation("ThreadRoot")
+  replyThread   QuackThread? @relation("ThreadReplies", fields: [replyThreadId], references: [id], onDelete: Restrict)
+  replyThreadId String?
 
   @@index([userId])
+  @@index([replyThreadId, createdAt, id])
   @@map("quack")
+}
+
+model QuackThread {
+  id           String  @id
+  rootQuackId  String? @unique
+  rootQuack    Quack?  @relation("ThreadRoot", fields: [rootQuackId], references: [id], onDelete: SetNull)
+  rootPostedAt DateTime
+  replies      Quack[] @relation("ThreadReplies")
+
+  @@map("quack_thread")
 }
 
 model Session {

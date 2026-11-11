@@ -17,7 +17,15 @@ import { api } from "@/lib/api-client"
 
 import { quackKeys } from "@/features/quack/api/quackKeys"
 
-export function DeleteQuack({ id }: { id: string }) {
+export function DeleteQuack({
+  id,
+  isReply = false,
+  hasReplies = false,
+}: {
+  id: string
+  isReply?: boolean
+  hasReplies?: boolean
+}) {
   const [isOpen, setOpen] = useState(false)
   const queryClient = useQueryClient()
   const deletion = useMutation({
@@ -52,8 +60,8 @@ export function DeleteQuack({ id }: { id: string }) {
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Delete"
-          title="Delete quack"
+          aria-label={isReply ? "Delete reply" : "Delete quack"}
+          title={isReply ? "Delete reply" : "Delete quack"}
           className="shrink-0 text-muted-foreground hover:text-destructive"
         >
           <Trash2
@@ -64,9 +72,15 @@ export function DeleteQuack({ id }: { id: string }) {
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete this quack?</AlertDialogTitle>
+          <AlertDialogTitle>
+            {isReply ? "Delete this reply?" : "Delete this quack?"}
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            This permanently deletes the quack and its poll, if any.
+            {isReply
+              ? "This permanently deletes the reply and its text."
+              : hasReplies
+                ? "This permanently deletes the quack and its poll, if any. Its replies will stay under a Deleted quack placeholder."
+                : "This permanently deletes the quack and its poll, if any."}
           </AlertDialogDescription>
         </AlertDialogHeader>
         {deletion.error ? (
@@ -74,7 +88,7 @@ export function DeleteQuack({ id }: { id: string }) {
             role="alert"
             className="text-sm text-destructive"
           >
-            Couldn’t delete this quack. Try again.
+            Couldn’t delete this {isReply ? "reply" : "quack"}. Try again.
           </p>
         ) : null}
         <AlertDialogFooter>
