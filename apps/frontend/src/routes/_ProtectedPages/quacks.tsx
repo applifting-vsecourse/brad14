@@ -35,7 +35,9 @@ function QuacksPage() {
 
         <PollProvider
           accountId={user?.id ?? ""}
-          pollIds={(quacksQuery.data ?? []).flatMap((quack) => (quack.poll ? [quack.poll.id] : []))}
+          pollIds={(quacksQuery.data ?? []).flatMap((quack) =>
+            quack.type === "quack" && quack.poll ? [quack.poll.id] : [],
+          )}
         >
           <QuackList
             isAdmin={user?.role === "admin"}

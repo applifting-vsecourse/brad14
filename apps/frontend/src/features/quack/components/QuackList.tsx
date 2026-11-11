@@ -6,13 +6,21 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-import type { Quack } from "@/features/quack/api/quackSchemas"
+import type { Quack, QuackFeedEntry } from "@/features/quack/api/quackSchemas"
+import { DeletedQuackItem } from "@/features/quack/components/DeletedQuackItem"
 import { QuackItem } from "@/features/quack/components/QuackItem"
+
+type QuackListEntry = QuackFeedEntry | Quack
+
+const isDeletedEntry = (
+  quack: QuackListEntry,
+): quack is Extract<QuackFeedEntry, { type: "deleted" }> =>
+  "type" in quack && quack.type === "deleted"
 
 type QuackListProps = {
   isAdmin?: boolean
   currentUserId?: string
-  quacks: Quack[]
+  quacks: QuackListEntry[]
   isLoading?: boolean
   error?: Error
   onReload?: () => void
@@ -28,14 +36,18 @@ export function QuackList({
 }: QuackListProps) {
   const [scope, setScope] = useState("all")
   const scopedQuacks =
-    scope === "mine" ? quacks.filter((quack) => quack.userId === currentUserId) : quacks
+    scope === "mine"
+      ? quacks.filter((quack) => !isDeletedEntry(quack) && quack.userId === currentUserId)
+      : quacks
   const [searchTerm, setSearchTerm] = useState("")
   const normalizedSearchTerm = searchTerm.trim().toLowerCase()
   const visibleQuacks = normalizedSearchTerm
-    ? scopedQuacks.filter((quack) =>
-        [quack.text, quack.user.name, quack.user.username].some((value) =>
-          value.toLowerCase().includes(normalizedSearchTerm),
-        ),
+    ? scopedQuacks.filter(
+        (quack) =>
+          !isDeletedEntry(quack) &&
+          [quack.text, quack.user.name, quack.user.username].some((value) =>
+            value.toLowerCase().includes(normalizedSearchTerm),
+          ),
       )
     : scopedQuacks
 
@@ -116,14 +128,23 @@ export function QuackList({
         </p>
       ) : null}
 
-      {visibleQuacks.map((quack) => (
-        <QuackItem
-          key={quack.id}
-          quack={quack}
-          currentUserId={currentUserId}
-          isAdmin={isAdmin}
-        />
-      ))}
+      {visibleQuacks.map((quack) =>
+        isDeletedEntry(quack) ? (
+          <DeletedQuackItem
+            key={quack.id}
+            quack={quack}
+          />
+        ) : (
+          <QuackItem
+            key={quack.id}
+            quack={quack}
+            currentUserId={currentUserId}
+            isAdmin={isAdmin}
+            hasDiscussionActions
+            replyCount={"replyCount" in quack ? quack.replyCount : 0}
+          />
+        ),
+      )}
     </div>
   )
 }

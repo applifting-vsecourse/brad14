@@ -7,10 +7,23 @@ import { UsersName } from "@/features/quack/components/UsersName"
 import { UsersUserName } from "@/features/quack/components/UsersUserName"
 
 import { DeleteQuack } from "./DeleteQuack"
+import { ReplyDiscussion } from "./ReplyDiscussion"
 
-type QuackItemProps = { quack: Quack; currentUserId?: string; isAdmin?: boolean }
+type QuackItemProps = {
+  quack: Quack
+  currentUserId?: string
+  isAdmin?: boolean
+  hasDiscussionActions?: boolean
+  replyCount?: number
+}
 
-export function QuackItem({ quack, currentUserId, isAdmin = false }: QuackItemProps) {
+export function QuackItem({
+  quack,
+  currentUserId,
+  isAdmin = false,
+  hasDiscussionActions = false,
+  replyCount = 0,
+}: QuackItemProps) {
   const { name, username } = quack.user
 
   const initials = name
@@ -41,10 +54,24 @@ export function QuackItem({ quack, currentUserId, isAdmin = false }: QuackItemPr
               </>
             ) : null}
           </div>
-          {currentUserId === quack.userId || isAdmin ? <DeleteQuack id={quack.id} /> : null}
+          {currentUserId === quack.userId || isAdmin ? (
+            <DeleteQuack
+              id={quack.id}
+              hasReplies={replyCount > 0}
+            />
+          ) : null}
         </div>
         <p className="text-sm break-words whitespace-pre-line">{quack.text}</p>
         {quack.poll ? <Poll id={quack.poll.id} /> : null}
+        {hasDiscussionActions ? (
+          <ReplyDiscussion
+            id={quack.id}
+            replyCount={replyCount}
+            canReply
+            currentUserId={currentUserId}
+            isAdmin={isAdmin}
+          />
+        ) : null}
       </div>
     </article>
   )

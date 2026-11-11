@@ -1,8 +1,10 @@
 import { CreatePoll } from '@/modules/quack/domain/poll';
 import { type Quack, type QuackMood } from '@/modules/quack/domain/quack';
+import { QuackFeedEntry } from '@/modules/quack/domain/quack-feed-entry';
 import { QuackRepository } from '@/modules/quack/repositories/quack.repository';
 import { Identity } from '@/shared/auth/domain/identity';
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -13,8 +15,21 @@ import { normalizePollOptions } from './poll-validation';
 export class QuacksService {
   constructor(private readonly quackRepository: QuackRepository) {}
 
-  async getQuacks(): Promise<Quack[]> {
+  async getQuacks(): Promise<QuackFeedEntry[]> {
     return this.quackRepository.getQuacks();
+  }
+
+  async getReplies(id: string): Promise<Quack[]> {
+    const replies = await this.quackRepository.getReplies(id);
+    if (!replies) throw new NotFoundException('Discussion not found');
+    return replies;
+  }
+
+  async createReply(user: Identity, id: string, text: string): Promise<Quack> {
+    const reply = await this.quackRepository.createReply(id, user.id, text);
+    if (!reply)
+      throw new ConflictException('The original quack has been deleted');
+    return reply;
   }
 
   async deleteQuack(user: Identity, id: string): Promise<void> {

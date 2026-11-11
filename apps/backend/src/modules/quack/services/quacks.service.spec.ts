@@ -1,6 +1,7 @@
 // Example unit test — the pattern to copy for your own services.
 // The repository is mocked, so the test exercises the service in isolation.
 import { Quack } from '@/modules/quack/domain/quack';
+import { LiveQuackFeedEntry } from '@/modules/quack/domain/quack-feed-entry';
 import { QuackRepository } from '@/modules/quack/repositories/quack.repository';
 import { Identity } from '@/shared/auth/domain/identity';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
@@ -18,9 +19,15 @@ const aQuack = (overrides: Partial<Quack> = {}): Quack => ({
   ...overrides,
 });
 
+const aFeedQuack = (overrides: Partial<Quack> = {}): LiveQuackFeedEntry => ({
+  ...aQuack(overrides),
+  type: 'quack',
+  replyCount: 0,
+});
+
 describe('QuacksService', () => {
   it('returns quacks from the repository', async () => {
-    const quacks = [aQuack()];
+    const quacks = [aFeedQuack()];
     const repository = mock<QuackRepository>();
     repository.getQuacks.mockResolvedValue(quacks);
 
