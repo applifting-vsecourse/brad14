@@ -24,7 +24,7 @@ describe("quack deletion", () => {
         currentUserId="u2"
       />,
     )
-    expect(screen.queryByRole("button", { name: "Delete" })).not.toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Delete quack" })).not.toBeInTheDocument()
   })
   it("waits for confirmation and allows cancellation", async () => {
     const client = new QueryClient()
@@ -36,11 +36,11 @@ describe("quack deletion", () => {
         />
       </QueryClientProvider>,
     )
-    await userEvent.click(screen.getByRole("button", { name: "Delete" }))
+    await userEvent.click(screen.getByRole("button", { name: "Delete quack" }))
     expect(api.delete).not.toHaveBeenCalled()
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }))
     expect(api.delete).not.toHaveBeenCalled()
-    await userEvent.click(screen.getByRole("button", { name: "Delete" }))
+    await userEvent.click(screen.getByRole("button", { name: "Delete quack" }))
     await userEvent.click(
       within(screen.getByRole("alertdialog")).getByRole("button", { name: "Delete" }),
     )
@@ -59,5 +59,5 @@ it("shows Delete to admins on another author's quack", () => {
       />
     </QueryClientProvider>,
   )
-  expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument()
+  expect(screen.getByRole("button", { name: "Delete quack" })).toBeInTheDocument()
 })

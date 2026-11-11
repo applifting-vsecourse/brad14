@@ -1,10 +1,15 @@
 // Example component test — the pattern to copy for your own components.
+import type { ReactElement } from "react"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { render, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
 import type { Quack } from "@/features/quack/api/quackSchemas"
 import { QuackList } from "@/features/quack/components/QuackList"
+
+const renderWithQueryClient = (ui: ReactElement) =>
+  render(<QueryClientProvider client={new QueryClient()}>{ui}</QueryClientProvider>)
 
 const quack = (overrides: Partial<Quack> = {}): Quack => ({
   id: "q1",
@@ -17,7 +22,7 @@ const quack = (overrides: Partial<Quack> = {}): Quack => ({
 
 describe("QuackList", () => {
   it("renders quacks with author info", () => {
-    render(<QuackList quacks={[quack()]} />)
+    renderWithQueryClient(<QuackList quacks={[quack()]} />)
 
     expect(screen.getByText("quack quack")).toBeInTheDocument()
     expect(screen.getByText("Caffeinated Duck")).toBeInTheDocument()
@@ -26,7 +31,7 @@ describe("QuackList", () => {
 
   it("shows an error with a working reload button", async () => {
     const onReload = vi.fn()
-    render(
+    renderWithQueryClient(
       <QuackList
         quacks={[]}
         error={new Error("Server unreachable")}
@@ -43,7 +48,7 @@ describe("QuackList", () => {
 })
 
 it("filters Mine and offers to compose when empty", async () => {
-  render(
+  renderWithQueryClient(
     <QuackList
       currentUserId="u2"
       quacks={[quack()]}
