@@ -14,7 +14,13 @@ const aQuack = (overrides: Partial<Quack> = {}): Quack => ({
   ...overrides,
 });
 
-const createRepository = (quack: Quack | null = aQuack()) => {
+const createRepository = (
+  quack: Quack | null = aQuack(),
+): {
+  prisma: PrismaService;
+  transaction: Prisma.TransactionClient;
+  repository: QuackRepository;
+} => {
   const prisma = mockDeep<PrismaService>();
   const transaction = mockDeep<Prisma.TransactionClient>();
   prisma.quack.findUnique.mockResolvedValue(
