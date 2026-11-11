@@ -24,6 +24,10 @@ Deliberately sparse — this file grows as the team learns what it expects from 
 
 Never commit or push directly to `main`. Make all changes on a separate branch and merge them into `main` through a pull request.
 
+### Verify before finishing a feature
+
+Before calling a feature implementation complete, run `pnpm check-all` from the repository root. This runs all backend and frontend tests, lint, type-checks, builds, and formatting checks. Fix failures before finishing. After pushing a PR, inspect its required CI checks and resolve failures; do not report the feature complete while required checks are pending or failing.
+
 ### UI controls come from the kit
 
 Need a control that isn't in `src/components/ui/`? Add it with `pnpm dlx shadcn@latest add <name>` — don't hand-roll one in a feature folder, even where a native input would do the job. One accessibility implementation to reason about beats a per-control judgement call.
