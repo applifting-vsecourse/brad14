@@ -9,20 +9,39 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { LikesService } from './likes.service';
 import { normalizePollOptions } from './poll-validation';
 
 @Injectable()
 export class QuacksService {
-  constructor(private readonly quackRepository: QuackRepository) {}
+  constructor(
+    private readonly quackRepository: QuackRepository,
+    private readonly likesService?: LikesService,
+  ) {}
 
-  async getQuacks(): Promise<QuackFeedEntry[]> {
-    return this.quackRepository.getQuacks();
+  async getQuacks(userId?: string): Promise<QuackFeedEntry[]> {
+    const entries = await this.quackRepository.getQuacks();
+    if (!userId || !this.likesService) return entries;
+    const liveEntries = entries.filter((entry) => entry.type === 'quack');
+    const states = await this.likesService.snapshots(
+      liveEntries.map((entry) => entry.id),
+      userId,
+    );
+    return entries.map((entry) => {
+      if (entry.type === 'deleted') return entry;
+      return { ...entry, ...states.get(entry.id) };
+    });
   }
 
-  async getReplies(id: string): Promise<Quack[]> {
+  async getReplies(id: string, userId?: string): Promise<Quack[]> {
     const replies = await this.quackRepository.getReplies(id);
     if (!replies) throw new NotFoundException('Discussion not found');
-    return replies;
+    if (!userId || !this.likesService) return replies;
+    const states = await this.likesService.snapshots(
+      replies.map((reply) => reply.id),
+      userId,
+    );
+    return replies.map((reply) => ({ ...reply, ...states.get(reply.id) }));
   }
 
   async createReply(user: Identity, id: string, text: string): Promise<Quack> {

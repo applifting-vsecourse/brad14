@@ -49,8 +49,8 @@ export class QuacksController {
   @ApiOperation({ summary: 'List all quacks' })
   @ApiResponse({ status: 200, type: [QuackFeedEntryResponseDto] })
   @ApiResponse({ status: 401, description: 'Not signed in' })
-  async list(): Promise<QuackFeedEntryResponseDto[]> {
-    const quacks = await this.quacksService.getQuacks();
+  async list(@User() user: Identity): Promise<QuackFeedEntryResponseDto[]> {
+    const quacks = await this.quacksService.getQuacks(user.id);
     return quacks.map(QuackFeedEntryResponseDto.fromDomain);
   }
 
@@ -58,8 +58,11 @@ export class QuacksController {
   @ApiOperation({ summary: 'List replies for a quack discussion' })
   @ApiResponse({ status: 200, type: [QuackResponseDto] })
   @ApiResponse({ status: 404, description: 'Discussion not found' })
-  async replies(@Param('id') id: string): Promise<QuackResponseDto[]> {
-    const replies = await this.quacksService.getReplies(id);
+  async replies(
+    @User() user: Identity,
+    @Param('id') id: string,
+  ): Promise<QuackResponseDto[]> {
+    const replies = await this.quacksService.getReplies(id, user.id);
     return replies.map(QuackResponseDto.fromDomain);
   }
 

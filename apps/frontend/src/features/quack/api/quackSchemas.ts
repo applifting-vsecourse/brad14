@@ -21,6 +21,8 @@ export const quackSchema = z.object({
   createdAt: z.coerce.date(),
   user: quackUserSchema,
   poll: pollMetadataSchema.nullable().optional(),
+  likeCount: z.number().int().nonnegative().optional(),
+  likedByCurrentUser: z.boolean().optional(),
 })
 
 export const liveQuackFeedEntrySchema = quackSchema.extend({
