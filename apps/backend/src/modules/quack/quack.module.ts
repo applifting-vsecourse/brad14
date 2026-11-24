@@ -7,6 +7,7 @@ import { PollRepository } from './repositories/poll.repository';
 import { QuackRepository } from './repositories/quack.repository';
 import { PollEventsService } from './services/poll-events.service';
 import { PollsService } from './services/polls.service';
+import { LikesService } from './services/likes.service';
 import { QuacksService } from './services/quacks.service';
 
 @Module({
@@ -14,6 +15,7 @@ import { QuacksService } from './services/quacks.service';
   controllers: [QuacksController, PollsController],
   providers: [
     QuacksService,
+    LikesService,
     QuackRepository,
     PollRepository,
     PollsService,

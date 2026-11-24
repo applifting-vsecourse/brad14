@@ -70,3 +70,120 @@ jobs:
 
       - name: Build frontend
         run: pnpm frontend build
+
+  test-integration:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: quacker
+          POSTGRES_PASSWORD: quacker
+          POSTGRES_DB: quacker
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U quacker -d quacker"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Create env files
+        run: pnpm env:check
+      - name: Generate Prisma client
+        run: pnpm backend prisma:generate
+      - name: Run HTTP integration tests
+        env:
+          DATABASE_URL: postgresql://quacker:quacker@localhost:5433/quacker
+        run: pnpm backend test:int
+
+  test-e2e:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: quacker
+          POSTGRES_PASSWORD: quacker
+          POSTGRES_DB: quacker
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U quacker -d quacker"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Create env files
+        run: pnpm env:check
+      - name: Generate Prisma client
+        run: pnpm backend prisma:generate
+      - name: Apply migrations
+        env:
+          DATABASE_URL: postgresql://quacker:quacker@localhost:5433/quacker
+        run: pnpm backend migrate
+      - name: Seed database
+        env:
+          DATABASE_URL: postgresql://quacker:quacker@localhost:5433/quacker
+        run: pnpm backend seed
+      - name: Install Playwright browser
+        run: pnpm --filter frontend exec playwright install --with-deps chromium
+      - name: Start backend
+        run: |
+          pnpm backend start > /tmp/quacker-backend.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            status=$(curl --silent --output /dev/null --write-out '%{http_code}' http://localhost:4050/api/quacks || true)
+            if [ "$status" != "000" ]; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/quacker-backend.log
+          exit 1
+      - name: Start frontend
+        run: |
+          pnpm frontend dev --host 0.0.0.0 --port 3050 > /tmp/quacker-frontend.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl --silent --fail http://localhost:3050/quacks > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/quacker-frontend.log
+          exit 1
+      - name: Run Playwright tests
+        run: pnpm frontend e2e
+
+  test-changes:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Find removed or rewritten test lines
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          changes=$(git diff --numstat "$BASE_SHA...HEAD" -- '*.spec.ts' '*.int-spec.ts' '*.test.tsx' 'apps/frontend/e2e/**')
+          violations=$(printf '%s\n' "$changes" | awk -F '\t' 'NF >= 3 && ($2 == "-" || $2 + 0 > 0) { print $3 }' | sort -u)
+          if [ -n "$violations" ]; then
+            echo "Test files with removed or rewritten lines:"
+            printf '%s\n' "$violations"
+            exit 1
+          fi
+          echo "No removed or rewritten lines found in test files."
