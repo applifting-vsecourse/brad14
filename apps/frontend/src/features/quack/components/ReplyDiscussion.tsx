@@ -24,6 +24,8 @@ type ReplyDiscussionProps = {
   canReply: boolean
   currentUserId?: string
   isAdmin?: boolean
+  likeCount?: number
+  likedByCurrentUser?: boolean
 }
 
 export function ReplyDiscussion({
@@ -32,6 +34,8 @@ export function ReplyDiscussion({
   canReply,
   currentUserId,
   isAdmin = false,
+  likeCount = 0,
+  likedByCurrentUser: isLikedByCurrentUser = false,
 }: ReplyDiscussionProps) {
   const [isExpanded, setExpanded] = useState(false)
   const [draft, setDraft] = useState("")
@@ -129,6 +133,15 @@ export function ReplyDiscussion({
             Reply
           </Button>
         ) : null}
+        {currentUserId ? (
+          <LikeButton
+            quackId={id}
+            likeCount={likeCount}
+            likedByCurrentUser={isLikedByCurrentUser}
+            onLike={(quackId) => updateLike(true, quackId)}
+            onUnlike={(quackId) => updateLike(false, quackId)}
+          />
+        ) : null}
       </div>
 
       {isExpanded ? (
@@ -187,7 +200,7 @@ export function ReplyDiscussion({
                   </time>
                 </div>
                 <p className="mt-1 text-sm break-words whitespace-pre-line">{reply.text}</p>
-                {canReply ? (
+                {currentUserId ? (
                   <LikeButton
                     quackId={reply.id}
                     likeCount={reply.likeCount ?? 0}
