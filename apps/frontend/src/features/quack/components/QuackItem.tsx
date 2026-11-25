@@ -1,18 +1,12 @@
-import { useContext } from "react"
-import { QueryClientContext } from "@tanstack/react-query"
-
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { formatDate } from "@/lib/date"
 
-import { setQuackLike } from "@/features/quack/api/likes"
-import { quackKeys } from "@/features/quack/api/quackKeys"
 import type { Quack } from "@/features/quack/api/quackSchemas"
 import { Poll } from "@/features/quack/components/Poll"
 import { UsersName } from "@/features/quack/components/UsersName"
 import { UsersUserName } from "@/features/quack/components/UsersUserName"
 
 import { DeleteQuack } from "./DeleteQuack"
-import { LikeButton } from "./LikeButton"
 import { ReplyDiscussion } from "./ReplyDiscussion"
 
 type QuackItemProps = {
@@ -30,7 +24,6 @@ export function QuackItem({
   hasDiscussionActions = false,
   replyCount = 0,
 }: QuackItemProps) {
-  const client = useContext(QueryClientContext)
   const { name, username } = quack.user
 
   const initials = name
@@ -39,16 +32,6 @@ export function QuackItem({
     .join("")
     .slice(0, 2)
     .toUpperCase()
-
-  const updateLike = async (shouldLike: boolean, id: string) => {
-    await setQuackLike(id, shouldLike)
-    if (client) {
-      await Promise.all([
-        client.invalidateQueries({ queryKey: quackKeys.lists() }),
-        client.invalidateQueries({ queryKey: quackKeys.discussion(id) }),
-      ])
-    }
-  }
 
   return (
     <article className="flex w-full gap-4 border-b border-border pt-2 pb-4 last:border-b-0">
@@ -80,15 +63,6 @@ export function QuackItem({
         </div>
         <p className="text-sm break-words whitespace-pre-line">{quack.text}</p>
         {quack.poll ? <Poll id={quack.poll.id} /> : null}
-        {currentUserId ? (
-          <LikeButton
-            quackId={quack.id}
-            likeCount={quack.likeCount ?? 0}
-            likedByCurrentUser={quack.likedByCurrentUser ?? false}
-            onLike={(id) => updateLike(true, id)}
-            onUnlike={(id) => updateLike(false, id)}
-          />
-        ) : null}
         {hasDiscussionActions ? (
           <ReplyDiscussion
             id={quack.id}

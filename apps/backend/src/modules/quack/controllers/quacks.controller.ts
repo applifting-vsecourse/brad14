@@ -11,7 +11,6 @@ import {
   HttpStatus,
   Param,
   Post,
-  Put,
   UseGuards,
   UsePipes,
   ValidationPipe,
@@ -45,8 +44,8 @@ export class QuacksController {
   @ApiOperation({ summary: 'List all quacks' })
   @ApiResponse({ status: 200, type: [QuackFeedEntryResponseDto] })
   @ApiResponse({ status: 401, description: 'Not signed in' })
-  async list(@User() user: Identity): Promise<QuackFeedEntryResponseDto[]> {
-    const quacks = await this.quacksService.getQuacks(user.id);
+  async list(): Promise<QuackFeedEntryResponseDto[]> {
+    const quacks = await this.quacksService.getQuacks();
     return quacks.map(QuackFeedEntryResponseDto.fromDomain);
   }
 
@@ -54,11 +53,8 @@ export class QuacksController {
   @ApiOperation({ summary: 'List replies for a quack discussion' })
   @ApiResponse({ status: 200, type: [QuackResponseDto] })
   @ApiResponse({ status: 404, description: 'Discussion not found' })
-  async replies(
-    @User() user: Identity,
-    @Param('id') id: string,
-  ): Promise<QuackResponseDto[]> {
-    const replies = await this.quacksService.getReplies(id, user.id);
+  async replies(@Param('id') id: string): Promise<QuackResponseDto[]> {
+    const replies = await this.quacksService.getReplies(id);
     return replies.map(QuackResponseDto.fromDomain);
   }
 
@@ -108,21 +104,5 @@ export class QuacksController {
       poll: body.poll,
     });
     return QuackResponseDto.fromDomain(quack);
-  }
-
-  @Put(':id/likes')
-  async like(
-    @User() user: Identity,
-    @Param('id') id: string,
-  ): Promise<{ likeCount: number; likedByCurrentUser: boolean }> {
-    return this.quacksService.likeQuack(id, user.id);
-  }
-
-  @Delete(':id/likes')
-  async unlike(
-    @User() user: Identity,
-    @Param('id') id: string,
-  ): Promise<{ likeCount: number; likedByCurrentUser: boolean }> {
-    return this.quacksService.unlikeQuack(id, user.id);
   }
 }
