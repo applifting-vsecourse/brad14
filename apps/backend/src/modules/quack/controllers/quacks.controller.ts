@@ -1,4 +1,3 @@
-import { LikesService } from '@/modules/quack/services/likes.service';
 import { QuacksService } from '@/modules/quack/services/quacks.service';
 import { User } from '@/shared/auth/decorators/user.decorator';
 import { Identity } from '@/shared/auth/domain/identity';
@@ -40,10 +39,7 @@ import { QuackResponseDto } from './dto/quack.response.dto';
   }),
 )
 export class QuacksController {
-  constructor(
-    private readonly quacksService: QuacksService,
-    private readonly likesService: LikesService,
-  ) {}
+  constructor(private readonly quacksService: QuacksService) {}
 
   @Get()
   @ApiOperation({ summary: 'List all quacks' })
@@ -119,7 +115,7 @@ export class QuacksController {
     @User() user: Identity,
     @Param('id') id: string,
   ): Promise<{ likeCount: number; likedByCurrentUser: boolean }> {
-    return this.likesService.like(id, user.id);
+    return this.quacksService.likeQuack(id, user.id);
   }
 
   @Delete(':id/likes')
@@ -127,6 +123,6 @@ export class QuacksController {
     @User() user: Identity,
     @Param('id') id: string,
   ): Promise<{ likeCount: number; likedByCurrentUser: boolean }> {
-    return this.likesService.unlike(id, user.id);
+    return this.quacksService.unlikeQuack(id, user.id);
   }
 }

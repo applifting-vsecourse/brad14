@@ -44,6 +44,22 @@ export class QuacksService {
     return replies.map((reply) => ({ ...reply, ...states.get(reply.id) }));
   }
 
+  async likeQuack(
+    id: string,
+    userId: string,
+  ): Promise<{ likeCount: number; likedByCurrentUser: boolean }> {
+    if (!this.likesService) throw new Error('LikesService is not configured');
+    return this.likesService.like(id, userId);
+  }
+
+  async unlikeQuack(
+    id: string,
+    userId: string,
+  ): Promise<{ likeCount: number; likedByCurrentUser: boolean }> {
+    if (!this.likesService) throw new Error('LikesService is not configured');
+    return this.likesService.unlike(id, userId);
+  }
+
   async createReply(user: Identity, id: string, text: string): Promise<Quack> {
     const reply = await this.quackRepository.createReply(id, user.id, text);
     if (!reply)
