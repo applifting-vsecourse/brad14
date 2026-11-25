@@ -3,8 +3,10 @@ import { AuthModule } from '@/shared/auth/auth.module';
 import { Module } from '@nestjs/common';
 import { PollsController } from './controllers/polls.controller';
 import { QuacksController } from './controllers/quacks.controller';
+import { LikesRepository } from './repositories/likes.repository';
 import { PollRepository } from './repositories/poll.repository';
 import { QuackRepository } from './repositories/quack.repository';
+import { LikesService } from './services/likes.service';
 import { PollEventsService } from './services/poll-events.service';
 import { PollsService } from './services/polls.service';
 import { QuacksService } from './services/quacks.service';
@@ -14,6 +16,8 @@ import { QuacksService } from './services/quacks.service';
   controllers: [QuacksController, PollsController],
   providers: [
     QuacksService,
+    LikesService,
+    LikesRepository,
     QuackRepository,
     PollRepository,
     PollsService,

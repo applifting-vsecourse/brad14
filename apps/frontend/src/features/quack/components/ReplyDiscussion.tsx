@@ -8,9 +8,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { HTTPError } from "@/lib/api-client"
 import { formatDate } from "@/lib/date"
 
+import { setQuackLike } from "@/features/quack/api/likes"
 import { quackKeys } from "@/features/quack/api/quackKeys"
 import { addReply, repliesQueryOptions } from "@/features/quack/api/replies"
 import { DeleteQuack } from "@/features/quack/components/DeleteQuack"
+import { LikeButton } from "@/features/quack/components/LikeButton"
 import { UsersName } from "@/features/quack/components/UsersName"
 import { UsersUserName } from "@/features/quack/components/UsersUserName"
 
@@ -38,7 +40,10 @@ export function ReplyDiscussion({
   const [isLoadingVisible, setIsLoadingVisible] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const client = useQueryClient()
-  const discussion = useQuery({ ...repliesQueryOptions(id), enabled: isExpanded })
+  const discussion = useQuery({
+    ...repliesQueryOptions(id),
+    enabled: isExpanded,
+  })
   const mutation = useMutation({
     mutationFn: (text: string) => addReply(id, text),
     onSuccess: async () => {
@@ -50,6 +55,13 @@ export function ReplyDiscussion({
       ])
     },
   })
+  const updateLike = async (shouldLike: boolean, quackId: string) => {
+    await setQuackLike(quackId, shouldLike)
+    await Promise.all([
+      client.invalidateQueries({ queryKey: quackKeys.lists() }),
+      client.invalidateQueries({ queryKey: quackKeys.discussion(id) }),
+    ])
+  }
 
   useEffect(() => {
     const timer = window.setTimeout(
@@ -175,6 +187,15 @@ export function ReplyDiscussion({
                   </time>
                 </div>
                 <p className="mt-1 text-sm break-words whitespace-pre-line">{reply.text}</p>
+                {canReply ? (
+                  <LikeButton
+                    quackId={reply.id}
+                    likeCount={reply.likeCount ?? 0}
+                    likedByCurrentUser={reply.likedByCurrentUser ?? false}
+                    onLike={(quackId) => updateLike(true, quackId)}
+                    onUnlike={(quackId) => updateLike(false, quackId)}
+                  />
+                ) : null}
               </div>
               {currentUserId === reply.userId || isAdmin ? (
                 <DeleteQuack

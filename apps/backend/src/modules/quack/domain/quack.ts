@@ -18,4 +18,6 @@ export type Quack = {
   updatedAt: Date;
   user?: QuackAuthor;
   poll?: PollMetadata | null;
+  likeCount?: number;
+  likedByCurrentUser?: boolean;
 };

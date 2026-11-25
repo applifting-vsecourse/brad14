@@ -39,6 +39,12 @@ export class QuackResponseDto {
   @ApiProperty({ nullable: true, type: Object })
   poll!: PollMetadata | null;
 
+  @ApiProperty({ minimum: 0, required: false })
+  likeCount?: number;
+
+  @ApiProperty({ required: false })
+  likedByCurrentUser?: boolean;
+
   static fromDomain(quack: Quack): QuackResponseDto {
     if (!quack.user) {
       throw new Error(
@@ -50,6 +56,10 @@ export class QuackResponseDto {
       text: quack.text,
       mood: quack.mood,
       poll: quack.poll ?? null,
+      ...(quack.likeCount !== undefined ? { likeCount: quack.likeCount } : {}),
+      ...(quack.likedByCurrentUser !== undefined
+        ? { likedByCurrentUser: quack.likedByCurrentUser }
+        : {}),
       userId: quack.userId,
       createdAt: quack.createdAt,
       user: {
